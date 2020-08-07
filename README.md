@@ -1,2 +1,2 @@
 # ft_traceroute
-Traceroute implementation
+Traceroute command implementation
