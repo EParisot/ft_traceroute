@@ -14,9 +14,9 @@ NAME	=	ft_traceroute
 
 SRCS	=	srcs/main.c \
 			srcs/ft_traceroute.c \
-			srcs/ft_ping_tools.c \
-			srcs/ft_ping_tools_2.c \
-			srcs/ft_ping_tools_3.c \
+			srcs/dns_tools.c \
+			srcs/socket_tools.c \
+			srcs/tools.c \
 
 INC		=	includes/ft_traceroute.h
 

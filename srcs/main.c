@@ -73,6 +73,7 @@ static t_ping_data	*check_inputs(int ac, char **av)
 	data->i = 0;
 	data->msg_count = 0;
 	data->last_ttl = 0;
+	data->stats_list = NULL;
 	get_inputs(ac, av, data);
 	return (data);
 }

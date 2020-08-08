@@ -64,9 +64,9 @@ t_ping_pkt			*build_pkt(t_ping_data *data);
 struct msghdr		*build_msg(struct sockaddr *addr_struct);
 void				sig_handler(int num_sig);
 void				save_stats(t_ping_data *data, int *delay);
-void				print_pkt_stats(t_ping_data *data, int received_size, \
-									int delay);
-void				print_step_stats(t_ping_data *data, struct msghdr *msg);
+void				print_step_stats(t_ping_data *data, \
+									 struct msghdr *msg, int delay);
 void				del(void *addr, size_t size);
+void				free_msg(t_ping_data *data, struct msghdr *msg);
 
 #endif

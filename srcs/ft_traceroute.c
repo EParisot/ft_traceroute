@@ -22,8 +22,11 @@ static int		check_and_wait(t_ping_data *data, struct msghdr *msg)
 		return (-1);
 	inet_ntop(AF_INET, &(((struct iphdr *)msg->msg_iov->iov_base)->saddr), \
 												str_addr, INET_ADDRSTRLEN);
-	if (ft_strcmp(str_addr, data->target_addr))
-		ret = -1;
+	if (ft_strcmp(str_addr, data->target_addr) || \
+		((struct icmphdr *)(msg->msg_iov->iov_base + \
+		((struct iphdr *)msg->msg_iov->iov_base)->ihl * \
+		sizeof(unsigned int)))->type == 11)
+		ret = -2;
 	data->last_ttl = ((struct iphdr *)msg->msg_iov->iov_base)->ttl;
 	if (ret == 0 && ((struct icmphdr *)(msg->msg_iov->iov_base + \
 		((struct iphdr *)msg->msg_iov->iov_base)->ihl * \
@@ -44,11 +47,14 @@ static int		send_and_receive(t_ping_data *data, struct msghdr *msg, \
 	struct timeval	start;
 	struct timeval	end;
 	t_ping_pkt		*pkt;
+	int				ret;
 
 	pkt = NULL;
 	received_size = 0;
+	ret = 0;
 	if ((pkt = build_pkt(data)) == NULL)
 		return (-1);
+	alarm(TIMEOUT);
 	gettimeofday(&start, NULL);
 	if (sendto(data->sockfd, pkt, sizeof(t_ping_pkt), 0, addr_struct, \
 						sizeof(struct sockaddr)) <= 0)
@@ -57,17 +63,14 @@ static int		send_and_receive(t_ping_data *data, struct msghdr *msg, \
 	gettimeofday(&end, NULL);
 	delay = (received_size > -1) ? ((end.tv_sec * 1000000 + end.tv_usec) - \
 			(start.tv_sec * 1000000 + start.tv_usec)) : 0;
-	if (check_and_wait(data, msg) == 0 && g_keyboard_interrupt < 10)
-		print_pkt_stats(data, received_size, delay);
-	else if (g_keyboard_interrupt < 10)
-		print_step_stats(data, msg);
-	if (delay / 1000 > TIMEOUT * 1000 && data->verbose)
-		fprintf(stderr, "Request timeout for icmp_seq %hu\n", data->msg_count);
+	ret = check_and_wait(data, msg);
+	print_step_stats(data, msg, delay, addr_struct);
 	free(pkt);
-	return (0);
+	return (ret);
 }
 
-static int		ping_loop(t_ping_data *data, struct sockaddr *addr_struct)
+static int		ping_loop(t_ping_data *data, \
+				struct sockaddr *addr_struct, int ret)
 {
 	struct msghdr	*msg;
 	struct timeval	tv_out;
@@ -75,29 +78,23 @@ static int		ping_loop(t_ping_data *data, struct sockaddr *addr_struct)
 	msg = NULL;
 	tv_out.tv_sec = TIMEOUT;
 	tv_out.tv_usec = 0;
-	g_keyboard_interrupt = 1;
-	data->stats_list = NULL;
-	signal(SIGINT, sig_handler);
-	signal(SIGALRM, sig_handler);
-	while (g_keyboard_interrupt < 10 && data->i++ < TTL_MAX)
+	while (g_keyboard_interrupt < 10 && (data->i)++ < TTL_MAX && ret)
 	{
-		if (setsockopt(data->sockfd, SOL_IP, IP_TTL, &data->i, \
-										sizeof(data->i)))
-			return (-1);
-		if (setsockopt(data->sockfd, SOL_SOCKET, SO_RCVTIMEO, \
-				(const char*)&tv_out, sizeof(tv_out)) != 0)
+		data->msg_count = 0;
+		data->stats_list = NULL;
+		if (setsockopt(data->sockfd, SOL_IP, IP_TTL, &(data->i), \
+			sizeof(data->i)) || setsockopt(data->sockfd, SOL_SOCKET, \
+			SO_RCVTIMEO, (const char*)&tv_out, sizeof(tv_out)) != 0)
 			return (-1);
 		if ((msg = build_msg(addr_struct)) == NULL)
 		{
 			fprintf(stderr, "ft_traceroute: Error building msg!\n");
 			return (-1);
 		}
-		alarm(TIMEOUT);
-		if (send_and_receive(data, msg, addr_struct, 0) == -1)
-			fprintf(stderr, "ft_traceroute: Error sending pkt\n");
-		free(msg->msg_iov->iov_base);
-		free(msg->msg_iov);
-		free(msg);
+		while ((data->msg_count)++ < 3)
+			if ((ret = send_and_receive(data, msg, addr_struct, 0)) == -1)
+				fprintf(stderr, "ft_traceroute: Error sending pkt\n");
+		free_msg(data, msg);
 	}
 	return (0);
 }
@@ -111,8 +108,14 @@ int				exec_ping(t_ping_data *data)
 	ft_memset(&addr_struct, 0, sizeof(struct sockaddr));
 	addr_struct.sa_family = AF_INET;
 	ft_memcpy(addr_struct.sa_data, data->sock_addr, 14);
+	signal(SIGINT, sig_handler);
+	signal(SIGALRM, sig_handler);
+	g_keyboard_interrupt = 1;
 	gettimeofday(&start, NULL);
-	if (ping_loop(data, &addr_struct) < 0)
+	printf("FT_TRACEROUTE to %s (%s), %d hops max, %ld byte packets\n", \
+							data->target, data->target_addr, \
+							TTL_MAX, PING_PKT_S - sizeof(struct icmphdr));
+	if (ping_loop(data, &addr_struct, -2) < 0)
 		return (-1);
 	gettimeofday(&end, NULL);
 	return (0);

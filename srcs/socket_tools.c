@@ -18,7 +18,6 @@ t_ping_pkt			*build_pkt(t_ping_data *data)
 	long unsigned int	i;
 
 	i = 0;
-	data->msg_count++;
 	if ((pkt = (t_ping_pkt *)malloc(sizeof(t_ping_pkt))) == NULL)
 		return (NULL);
 	ft_memset(pkt, 0, sizeof(t_ping_pkt));
@@ -52,7 +51,9 @@ struct msghdr		*build_msg(struct sockaddr *addr_struct)
 	iov->iov_len = BUFFER_MAX_SIZE;
 	msg->msg_iov = iov;
 	msg->msg_iovlen = 1;
-	msg->msg_name = addr_struct;
+	if ((msg->msg_name = (struct sockaddr*)malloc(sizeof(struct sockaddr))) == NULL)
+		return (NULL);
+	ft_memcpy(msg->msg_name, addr_struct, sizeof(struct sockaddr));
 	msg->msg_namelen = sizeof(struct sockaddr);
 	return (msg);
 }

@@ -34,25 +34,33 @@ int			dns_err(t_ping_data *data, struct addrinfo *hints, \
 	return (0);
 }
 
-void		print_step_stats(t_ping_data *data, struct msghdr *msg)
+void		print_step_stats(t_ping_data *data, struct msghdr *msg, \
+														int delay)
 {
 	char				*str_addr;
 	int 				ip;
 
-	ip = ((struct iphdr *)(msg->msg_iov->iov_base))->saddr;
-	if ((str_addr = (char *)malloc(INET_ADDRSTRLEN)) == NULL)
-		return;
-	inet_ntop(AF_INET, &ip, str_addr, INET_ADDRSTRLEN);
-	printf("%d: %s\n", data->i, str_addr);
-	free(str_addr);
+	save_stats(data, &delay);
+	if (data->msg_count == 3)
+	{
+		ip = ((struct iphdr *)(msg->msg_iov->iov_base))->saddr;
+		if ((str_addr = (char *)malloc(INET_ADDRSTRLEN)) == NULL)
+			return;
+		inet_ntop(AF_INET, &ip, str_addr, INET_ADDRSTRLEN);
+		printf("%d %s  %.2f  %.2f  %.2f\n", data->i, str_addr, \
+			(float)(*(int*)data->stats_list->content) / 1000, \
+			(float)(*(int*)data->stats_list->next->content) / 1000, \
+			(float)(*(int*)data->stats_list->next->next->content) / 1000);
+		free(str_addr);
+	}	
 }
 
-void		print_pkt_stats(t_ping_data *data, int received_size, \
-														int delay)
+void		free_msg(t_ping_data *data, struct msghdr *msg)
 {
-	printf("%d bytes from %s (%s): icmp_seq=%d ttl=%d time=%.2f ms\n", \
-		(int)(received_size - sizeof(struct iphdr)), data->target, \
-		data->target_addr, data->msg_count, data->last_ttl, \
-		(float)(delay) / 1000);
-	save_stats(data, &delay);
+	free(msg->msg_iov->iov_base);
+	free(msg->msg_iov);
+	free(msg->msg_name);
+	free(msg);
+	if (data && data->stats_list)
+		ft_lstdel(&data->stats_list, del);
 }
