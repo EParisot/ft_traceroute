@@ -48,6 +48,8 @@ void		print_step_stats(t_ping_data *data, struct msghdr *msg, \
 	{
 		ip = ((struct iphdr *)(msg->msg_iov->iov_base))->saddr;
 		inet_ntop(AF_INET, &ip, str_addr, INET_ADDRSTRLEN);
+		if (ft_strcmp(str_addr, "0.0.0.0") == 0)
+			ft_strcpy(str_addr, "* * * *");
 		ft_strcpy(hostname, str_addr);
 		if (((struct iphdr *)(msg->msg_iov->iov_base))->saddr)
 			he = gethostbyaddr((void *)&(((struct iphdr *)\
