@@ -57,9 +57,8 @@ void		print_step_stats(t_ping_data *data, struct msghdr *msg, \
 				(msg->msg_iov->iov_base))->saddr), AF_INET);
 		if (he && he->h_name)
 			ft_strcpy(hostname, he->h_name);
-		printf("%d  %s (%s)  %.2f ms  %.2f ms  %.2f ms\n", \
-							data->i, hostname, str_addr, \
-			(float)(*(int*)data->stats_list->content) / 1000, \
+		printf("%d  %s (%s)  %.2f ms  %.2f ms  %.2f ms\n", data->i, hostname, \
+			str_addr, (float)(*(int*)data->stats_list->content) / 1000, \
 			(float)(*(int*)data->stats_list->next->content) / 1000, \
 			(float)(*(int*)data->stats_list->next->next->content) / 1000);
 	}
