@@ -51,7 +51,7 @@ void		print_step_stats(t_ping_data *data, struct msghdr *msg, \
 		ft_strcpy(hostname, str_addr);
 		if (((struct iphdr *)(msg->msg_iov->iov_base))->saddr)
 			he = gethostbyaddr((void *)&(((struct iphdr *)\
-				(msg->msg_iov->iov_base))->saddr) , sizeof(((struct iphdr *)\
+				(msg->msg_iov->iov_base))->saddr), sizeof(((struct iphdr *)\
 				(msg->msg_iov->iov_base))->saddr), AF_INET);
 		if (he && he->h_name)
 			ft_strcpy(hostname, he->h_name);

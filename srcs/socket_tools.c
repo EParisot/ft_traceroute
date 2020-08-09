@@ -51,7 +51,7 @@ struct msghdr		*build_msg(struct sockaddr *addr_struct)
 	iov->iov_len = BUFFER_MAX_SIZE;
 	msg->msg_iov = iov;
 	msg->msg_iovlen = 1;
-	if ((msg->msg_name = (struct sockaddr*)malloc(sizeof(struct sockaddr))) == NULL)
+	if (!(msg->msg_name = (struct sockaddr*)malloc(sizeof(struct sockaddr))))
 		return (NULL);
 	ft_memcpy(msg->msg_name, addr_struct, sizeof(struct sockaddr));
 	msg->msg_namelen = sizeof(struct sockaddr);
