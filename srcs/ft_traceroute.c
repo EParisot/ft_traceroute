@@ -64,7 +64,7 @@ static int		send_and_receive(t_ping_data *data, struct msghdr *msg, \
 	delay = (received_size > -1) ? ((end.tv_sec * 1000000 + end.tv_usec) - \
 			(start.tv_sec * 1000000 + start.tv_usec)) : 0;
 	ret = check_and_wait(data, msg);
-	print_step_stats(data, msg, delay, addr_struct);
+	print_step_stats(data, msg, delay);
 	free(pkt);
 	return (ret);
 }
