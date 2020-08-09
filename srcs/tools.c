@@ -38,7 +38,7 @@ void		print_step_stats(t_ping_data *data, struct msghdr *msg, \
 														int delay)
 {
 	char				str_addr[INET_ADDRSTRLEN];
-	int 				ip;
+	int					ip;
 	struct hostent		*he;
 	char				hostname[1024];
 
