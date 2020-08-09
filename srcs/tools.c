@@ -37,22 +37,30 @@ int			dns_err(t_ping_data *data, struct addrinfo *hints, \
 void		print_step_stats(t_ping_data *data, struct msghdr *msg, \
 														int delay)
 {
-	char				*str_addr;
+	char				str_addr[INET_ADDRSTRLEN];
 	int 				ip;
+	struct hostent		*he;
+	char				hostname[1024];
 
+	he = NULL;
 	save_stats(data, &delay);
 	if (data->msg_count == 3)
 	{
 		ip = ((struct iphdr *)(msg->msg_iov->iov_base))->saddr;
-		if ((str_addr = (char *)malloc(INET_ADDRSTRLEN)) == NULL)
-			return;
 		inet_ntop(AF_INET, &ip, str_addr, INET_ADDRSTRLEN);
-		printf("%d %s  %.2f  %.2f  %.2f\n", data->i, str_addr, \
+		ft_strcpy(hostname, str_addr);
+		if (((struct iphdr *)(msg->msg_iov->iov_base))->saddr)
+			he = gethostbyaddr((void *)&(((struct iphdr *)\
+				(msg->msg_iov->iov_base))->saddr) , sizeof(((struct iphdr *)\
+				(msg->msg_iov->iov_base))->saddr), AF_INET);
+		if (he && he->h_name)
+			ft_strcpy(hostname, he->h_name);
+		printf("%d  %s (%s)  %.2f ms  %.2f ms  %.2f ms\n", \
+							data->i, hostname, str_addr, \
 			(float)(*(int*)data->stats_list->content) / 1000, \
 			(float)(*(int*)data->stats_list->next->content) / 1000, \
 			(float)(*(int*)data->stats_list->next->next->content) / 1000);
-		free(str_addr);
-	}	
+	}
 }
 
 void		free_msg(t_ping_data *data, struct msghdr *msg)
