@@ -44,12 +44,15 @@ void		print_step_stats(t_ping_data *data, struct msghdr *msg, \
 
 	he = NULL;
 	save_stats(data, &delay);
+	ip = ((struct iphdr *)(msg->msg_iov->iov_base))->saddr;
+	inet_ntop(AF_INET, &ip, str_addr, INET_ADDRSTRLEN);
 	if (data->msg_count == 3)
 	{
-		ip = ((struct iphdr *)(msg->msg_iov->iov_base))->saddr;
-		inet_ntop(AF_INET, &ip, str_addr, INET_ADDRSTRLEN);
 		if (ft_strcmp(str_addr, "0.0.0.0") == 0)
-			ft_strcpy(str_addr, "* * * *");
+		{
+			printf("*\n");
+			return ;
+		}
 		ft_strcpy(hostname, str_addr);
 		if (((struct iphdr *)(msg->msg_iov->iov_base))->saddr)
 			he = gethostbyaddr((void *)&(((struct iphdr *)\
@@ -57,10 +60,17 @@ void		print_step_stats(t_ping_data *data, struct msghdr *msg, \
 				(msg->msg_iov->iov_base))->saddr), AF_INET);
 		if (he && he->h_name)
 			ft_strcpy(hostname, he->h_name);
-		printf("%d  %s (%s)  %.2f ms  %.2f ms  %.2f ms\n", data->i, hostname, \
+		printf("%s (%s)  %.2f ms  %.2f ms  %.2f ms\n", hostname, \
 			str_addr, (float)(*(int*)data->stats_list->content) / 1000, \
 			(float)(*(int*)data->stats_list->next->content) / 1000, \
 			(float)(*(int*)data->stats_list->next->next->content) / 1000);
+	}
+	else
+	{
+		if (data->msg_count == 1)
+			printf("%d  ", data->i);
+		if (ft_strcmp(str_addr, "0.0.0.0") == 0)
+			printf("* ");
 	}
 }
 
