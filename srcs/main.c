@@ -44,7 +44,7 @@ static int			get_inputs(int ac, char **av, t_ping_data *data)
 			{
 				if (!(data->target = (char *)malloc(ft_strlen(av[i]) + 1)))
 					return (-1);
-				ft_strcpy(data->target, av[i]);
+				ft_strcpy(data->target, (ft_strcmp(av[i], "0.0.0.0") == 0) ? "127.0.0.1" : av[i]);
 			}
 		}
 	if (data->target == NULL)
